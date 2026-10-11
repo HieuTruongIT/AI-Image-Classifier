@@ -1,0 +1,51 @@
+# python
+__pycache__/
+*.pyc
+.venv/
+.env
+.env.local
+
+# node
+node_modules/
+dist/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# notebooks
+.ipynb_checkpoints/
+
+# misc
+*.log
+
+# model weights (large files)
+*.pt
+*.pth
+*.onnx
+
+# ML data and outputs (large files)
+ml/data/
+ml/out/
+
+# Backend models directory (downloaded at runtime)
+apps/backend/app/models/*.pt
+
+# Vercel
+.vercel
+
+# IDE
+.history/
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Test coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Build artifacts
+build/
+*.egg-info/

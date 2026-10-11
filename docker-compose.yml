@@ -1,0 +1,111 @@
+# docker-compose.yml
+# VisionScale Local Development Environment
+#
+# Usage:
+#   docker-compose up -d        # Start all services
+#   docker-compose logs -f      # View logs
+#   docker-compose down         # Stop all services
+#
+# Services:
+#   - backend:    FastAPI ML inference service (port 8000)
+#   - frontend:   React frontend (port 5173)
+#   - prometheus: Metrics collection (port 9090)
+#   - grafana:    Metrics visualization (port 3000)
+
+version: "3.9"
+
+services:
+  # ─────────────────────────────────────────────────────────────
+  # Backend - FastAPI ML Inference Service
+  # ─────────────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./apps/backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - MODEL_REPO=prakhyatc/visionscale-imagenet
+      - MODEL_REV=main
+      - MODEL_FILE=model.torchscript.pt
+      - LABELS_FILE=labels.txt
+      - RATE_LIMIT_ENABLED=true
+      - CACHE_ENABLED=true
+      - MAX_UPLOAD_MB=10
+      - MAX_BATCH_SIZE=20
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+    networks:
+      - visionscale
+
+  # ─────────────────────────────────────────────────────────────
+  # Frontend - React App (Development Server)
+  # ─────────────────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./apps/frontend
+      dockerfile: Dockerfile.dev
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://localhost:8000
+    volumes:
+      - ./apps/frontend/src:/app/src:ro
+    depends_on:
+      - backend
+    networks:
+      - visionscale
+
+  # ─────────────────────────────────────────────────────────────
+  # Prometheus - Metrics Collection
+  # ─────────────────────────────────────────────────────────────
+  prometheus:
+    image: prom/prometheus:v2.47.0
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.enable-lifecycle"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - visionscale
+
+  # ─────────────────────────────────────────────────────────────
+  # Grafana - Metrics Visualization
+  # ─────────────────────────────────────────────────────────────
+  grafana:
+    image: grafana/grafana:10.1.0
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=visionscale
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboard.json:/var/lib/grafana/dashboards/visionscale.json:ro
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+    networks:
+      - visionscale
+
+networks:
+  visionscale:
+    driver: bridge
+
+volumes:
+  prometheus_data:
+  grafana_data:

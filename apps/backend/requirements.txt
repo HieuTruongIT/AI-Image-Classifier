@@ -1,0 +1,27 @@
+# VisionScale Backend Dependencies
+
+# Web Framework
+fastapi>=0.100.0
+uvicorn[standard]>=0.23.0
+
+# Image Processing
+pillow>=10.0.0
+
+# Data Validation
+pydantic>=2.0.0
+
+# File Upload
+python-multipart>=0.0.6
+
+# Model Loading
+huggingface_hub>=0.16.0
+
+# Numerical
+numpy<2
+
+# Testing (dev dependencies)
+pytest>=7.0.0
+httpx>=0.24.0
+
+# Note: torch and torchvision are installed separately in Dockerfile
+# to get CPU-optimized builds from PyTorch's wheel index

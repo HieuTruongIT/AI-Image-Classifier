@@ -1,0 +1,13 @@
+# Development & Testing Tools
+#
+# Install with: pip install -r tools/requirements.txt
+
+# Load Testing
+locust>=2.15.0
+
+# Image processing for test data generation
+pillow>=10.0.0
+numpy>=1.24.0
+
+# HTTP client for manual testing
+httpx>=0.24.0

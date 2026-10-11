@@ -1,0 +1,105 @@
+# VisionScale Training Configuration
+# CIFAR-10 with ResNet18 backbone
+# 
+# Usage:
+#   python src/train_cifar.py --config configs/cifar10_resnet18.yaml
+#
+# All values can be overridden via CLI args (e.g., --epochs 10)
+
+# ─────────────────────────────────────────────────────────────
+# Model Configuration
+# ─────────────────────────────────────────────────────────────
+model:
+  architecture: resnet18
+  pretrained: true                    # Use ImageNet pretrained weights
+  num_classes: 10
+  dropout: 0.0                        # Dropout before final FC (optional)
+
+# ─────────────────────────────────────────────────────────────
+# Dataset Configuration
+# ─────────────────────────────────────────────────────────────
+data:
+  dataset: cifar10
+  data_dir: ./ml/data
+  num_workers: 4
+  pin_memory: true
+
+# ─────────────────────────────────────────────────────────────
+# Training Hyperparameters
+# ─────────────────────────────────────────────────────────────
+training:
+  epochs: 20
+  batch_size: 64
+  
+  # Optimizer
+  optimizer: adamw
+  learning_rate: 0.001
+  weight_decay: 0.01
+  momentum: 0.9                       # Only used if optimizer is SGD
+  
+  # Learning Rate Schedule
+  scheduler: cosine                   # Options: cosine, step, none
+  warmup_epochs: 1
+  min_lr: 0.00001
+  
+  # StepLR specific (if scheduler: step)
+  step_size: 7
+  gamma: 0.1
+
+# ─────────────────────────────────────────────────────────────
+# Data Augmentation (Training Only)
+# ─────────────────────────────────────────────────────────────
+augmentation:
+  random_crop: true
+  crop_scale: [0.7, 1.0]
+  horizontal_flip: true
+  color_jitter: false
+  color_jitter_params:
+    brightness: 0.2
+    contrast: 0.2
+    saturation: 0.2
+    hue: 0.1
+  random_erasing: false
+  random_erasing_prob: 0.25
+
+# ─────────────────────────────────────────────────────────────
+# Transforms (Training + Inference) - MUST MATCH model_service.py
+# ─────────────────────────────────────────────────────────────
+transforms:
+  resize: 256
+  crop_size: 224
+  # ImageNet normalization (required for pretrained weights)
+  normalize:
+    mean: [0.485, 0.456, 0.406]
+    std: [0.229, 0.224, 0.225]
+
+# ─────────────────────────────────────────────────────────────
+# Output & Checkpointing
+# ─────────────────────────────────────────────────────────────
+output:
+  dir: ./ml/out/cifar10_resnet18
+  save_best: true
+  save_last: true
+  save_every_n_epochs: 5
+
+# ─────────────────────────────────────────────────────────────
+# Logging & Experiment Tracking
+# ─────────────────────────────────────────────────────────────
+logging:
+  log_every_n_steps: 50
+  use_wandb: false
+  wandb_project: visionscale
+  wandb_run_name: cifar10-resnet18
+
+# ─────────────────────────────────────────────────────────────
+# Hardware
+# ─────────────────────────────────────────────────────────────
+hardware:
+  device: auto                        # auto, cpu, cuda, mps
+  mixed_precision: false              # Use AMP for faster training on GPU
+
+# ─────────────────────────────────────────────────────────────
+# Reproducibility
+# ─────────────────────────────────────────────────────────────
+seed: 42
+deterministic: false                  # Set true for full reproducibility (slower)

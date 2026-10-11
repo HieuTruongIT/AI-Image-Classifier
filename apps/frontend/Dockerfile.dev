@@ -1,0 +1,19 @@
+# Frontend Development Dockerfile
+# Uses Vite dev server with hot reload
+
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Install dependencies
+COPY package*.json ./
+RUN npm ci
+
+# Copy source (for initial build)
+COPY . .
+
+# Expose Vite dev server port
+EXPOSE 5173
+
+# Start dev server with host binding for Docker
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
